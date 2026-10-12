@@ -3,34 +3,28 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"time"
 
 	"redisgo/store"
 	"redisgo/store/kv"
-	"redisgo/store/ttl"
 )
 
 func main() {
-	keyValueStore := kv.NewStore(20)
+	s := CreateStore()
 
-	encrypted, err := SetKeyWithEncryption(keyValueStore, "a", "hey you can see me")
+	encrypted, err := SetKeyWithEncryption(s, "a", "hey you can see me")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error setting key:", err)
 		return
 	}
 
 	fmt.Println(encrypted)
 
-	ttlStore := ttl.NewTTLStore(time.Second * 2)
+}
 
-	encryptedTtlValue, err := SetKeyWithEncryption(ttlStore, "a", "hey you can see me")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(encryptedTtlValue)
-
+func CreateStore() store.Storer {
+	plain := kv.NewStore(20)
+	logger := NewLoggingMiddleware(plain)
+	return logger
 }
 
 func SetKeyWithEncryption(store store.Storer, key, val string) (string, error) {
@@ -39,6 +33,9 @@ func SetKeyWithEncryption(store store.Storer, key, val string) (string, error) {
 	if err := store.Set(key, encoded); err != nil {
 		return "", err
 	}
+
+	store.Len()
+	store.Get("key")
 
 	return store.Get(key)
 }
