@@ -47,3 +47,9 @@ func (l *LoggingMiddleware) Len() int {
 	l.logger.Printf("Len %d", got) //side effect
 	return got
 }
+
+func (l *LoggingMiddleware) Keys() []string {
+	got := l.inner.Keys()
+	l.logger.Printf("Keys %v", got)
+	return got
+}

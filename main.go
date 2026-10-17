@@ -9,22 +9,19 @@ import (
 )
 
 func main() {
-	s := CreateStore()
+	plain := kv.NewStore(20)
+	logger := NewLoggingMiddleware(plain)
+	metrics := NewMetricsMiddleware(logger)
 
-	encrypted, err := SetKeyWithEncryption(s, "a", "hey you can see me")
+	encrypted, err := SetKeyWithEncryption(metrics, "a", "hey you can see me")
 	if err != nil {
 		fmt.Println("Error setting key:", err)
 		return
 	}
 
 	fmt.Println(encrypted)
+	metrics.GetMetrics()
 
-}
-
-func CreateStore() store.Storer {
-	plain := kv.NewStore(20)
-	logger := NewLoggingMiddleware(plain)
-	return logger
 }
 
 func SetKeyWithEncryption(store store.Storer, key, val string) (string, error) {
